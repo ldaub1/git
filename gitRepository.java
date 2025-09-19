@@ -1,8 +1,7 @@
 import java.io.*;
-import java.nio.file.*;
-import java.nio.charset.StandardCharsets;
+import java.math.BigInteger;
 import java.security.MessageDigest;
-import java.util.ArrayList;
+import java.security.NoSuchAlgorithmException;
 
 public class gitRepository {
 
@@ -39,20 +38,25 @@ public class gitRepository {
 
         return "Git Repository Created";
     }
-    
-    public static void commit(String fileName) {
 
+    public static String createShah1Hash(String fileName) {
 
-        String data = getFileContents(fileName);
+        String inputData = getFileContents(fileName);
 
-        // String sha1Hash = generateSHA1Hash(data);
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] messageDigest = md.digest(inputData.getBytes());
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashtext = no.toString(16);
 
-        // // 1. Using BufferedWriter
-        // try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("git/index"))) {
-        //     bufferedWriter.write(sha1Hash);
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
+            while (hashtext.length() < 40)
+                hashtext = "0" + hashtext;
+
+            return hashtext;
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException();
+        }
     }
 
     public static String getFileContents(String fileName) {
@@ -66,6 +70,5 @@ public class gitRepository {
             e.printStackTrace();
         }
         return data.toString();
-	}
-    
+     }
 }
