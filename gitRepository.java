@@ -39,10 +39,7 @@ public class gitRepository {
         return "Git Repository Created";
     }
 
-    public static String createShah1Hash(String fileName) {
-
-        String inputData = getFileContents(fileName);
-
+    public static String createShah1Hash(String inputData) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] messageDigest = md.digest(inputData.getBytes());
@@ -70,5 +67,21 @@ public class gitRepository {
             e.printStackTrace();
         }
         return data.toString();
-     }
+    }
+
+    public static void BLOB(String fileName) {
+        String fileContents = getFileContents(fileName);
+        String hashName = createShah1Hash(fileContents);
+        File newBLOB = new File(hashName);
+        try {
+            newBLOB.createNewFile();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(hashName))) {
+            bufferedWriter.write(fileContents);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
