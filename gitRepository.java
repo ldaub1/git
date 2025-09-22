@@ -5,13 +5,15 @@ import java.security.NoSuchAlgorithmException;
 
 public class gitRepository {
 
-    private static File gitDIR = new File("git");
-    private static File OBJECTS = new File("git/objects");
-    private static File INDEX = new File("git/index");
-    private static File HEAD = new File("git/HEAD");
+    private File gitDIR = new File("git");
+    private File OBJECTS = new File("git/objects");
+    private File INDEX = new File("git/index");
+    private File HEAD = new File("git/HEAD");
+    private boolean compress;
 
-    public gitRepository() {
+    public gitRepository(boolean compress) {
         System.out.println(attemptCreatingGitRepository());
+        this.compress = compress;
     }
 
     public String attemptCreatingGitRepository() {
@@ -38,7 +40,10 @@ public class gitRepository {
         return "Git Repository Created";
     }
 
-    public static String createShah1Hash(String inputData) {
+    public String createShah1Hash(String inputData) {
+        if (compress)
+            inputData = compressContents(inputData);
+
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] messageDigest = md.digest(inputData.getBytes());
@@ -80,5 +85,9 @@ public class gitRepository {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static String compressContents() {
+        
     }
 }

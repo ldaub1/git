@@ -9,14 +9,14 @@ public class projectTester {
     private static File INDEX = new File("git/index");
     private static File HEAD = new File("git/HEAD");
 
-    public static void main(String[] args) {
+    public static void main(String[] args, boolean compress) {
         testGenerateGitDirectory();
         testBLOB();
     }
 
     public static void testBLOB() {
         clearRepo();
-        gitRepository testRepo = new gitRepository();
+        gitRepository testRepo = new gitRepository(false);
 
         File testFile = new File("test.txt");
         try {
@@ -31,8 +31,14 @@ public class projectTester {
         }
 
         testRepo.BLOB("test.txt");
-        File fileBLOB = new File("git/objects/" + gitRepository.createShah1Hash(gitRepository.getFileContents("test.txt")));
-        System.out.println("\nBLOB created in objects: " + fileBLOB.exists());
+        File fileBLOB = new File("git/objects/" + testRepo.createShah1Hash(gitRepository.getFileContents("test.txt")));
+        System.out.println("\nBLOB created in objects (uncompressed): " + fileBLOB.exists());
+
+        clearRepo();
+        gitRepository testRepoCompressed = new gitRepository(true);
+        testRepo.BLOB("test.txt");
+        File fileBLOBCompressed = new File("git/objects/" + testRepoCompressed.createShah1Hash(gitRepository.getFileContents("test.txt")));
+        System.out.println("\nBLOB created in objects (compressed): " + fileBLOBCompressed.exists());
     }
 
     public static void testGenerateGitDirectory() {
@@ -40,7 +46,7 @@ public class projectTester {
         for (int i = 0; i < 100; i++) {
             clearRepo();
 
-            gitRepository testRepo = new gitRepository();
+            gitRepository testRepo = new gitRepository(false);
 
             System.out.println("git Directory Created: " + gitDIR.exists());
             System.out.println("objects Directory Created Inside git Directory: " + OBJECTS.exists());
@@ -48,7 +54,7 @@ public class projectTester {
             System.out.println("head File Created Inside git Directory: " + HEAD.exists());
 
             System.out.println("\nError Sucessfully Thrown If Exists?");
-            gitRepository testRepo2 = new gitRepository();
+            gitRepository testRepo2 = new gitRepository(false);
         }
     }
 
