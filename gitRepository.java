@@ -5,21 +5,24 @@ import java.security.NoSuchAlgorithmException;
 
 public class gitRepository {
 
-    private static File gitDIR = new File("git");
-    private static File OBJECTS = new File("git/objects");
-    private static File INDEX = new File("git/index");
-    private static File HEAD = new File("git/HEAD");
+    private File gitDIR = new File("git");
+    private File OBJECTS = new File("git/objects");
+    private File INDEX = new File("git/index");
+    private File HEAD = new File("git/HEAD");
+    private boolean compress;
 
-    public static String attemptCreatingGitRepository() {
+    public gitRepository(boolean compress) {
+        System.out.println(attemptCreatingGitRepository());
+        this.compress = compress;
+    }
+
+    public String attemptCreatingGitRepository() {
         if (HEAD.exists() && INDEX.exists() && OBJECTS.exists() && gitDIR.exists())
             return "Git Repository Already Exists";
-
         if (!gitDIR.exists())
             gitDIR.mkdir();
-
         if (!OBJECTS.exists())
             OBJECTS.mkdir();
-
         if (!INDEX.exists()) {
             try {
                 INDEX.createNewFile();
@@ -27,7 +30,6 @@ public class gitRepository {
                 System.out.println(e.getMessage());
             }
         }
-
         if (!HEAD.exists()) {
             try {
                 HEAD.createNewFile();
@@ -35,23 +37,20 @@ public class gitRepository {
                 System.out.println(e.getMessage());
             }
         }
-
         return "Git Repository Created";
     }
 
-    public static String createShah1Hash(String fileName) {
-
-        String inputData = getFileContents(fileName);
+    public String createShah1Hash(String inputData) {
+        if (compress)
+            inputData = compressContents(inputData);
 
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] messageDigest = md.digest(inputData.getBytes());
             BigInteger no = new BigInteger(1, messageDigest);
             String hashtext = no.toString(16);
-
             while (hashtext.length() < 40)
                 hashtext = "0" + hashtext;
-
             return hashtext;
         }
         catch (NoSuchAlgorithmException e) {
@@ -70,5 +69,25 @@ public class gitRepository {
             e.printStackTrace();
         }
         return data.toString();
-     }
+    }
+
+    public void BLOB(String fileName) {
+        String fileContents = getFileContents(fileName);
+        String hashName = createShah1Hash(fileContents);
+        File newBLOB = new File("git/objects/" + hashName);
+        try {
+            newBLOB.createNewFile();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("git/objects/" + hashName))) {
+            bufferedWriter.write(fileContents);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String compressContents() {
+        
+    }
 }
