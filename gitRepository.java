@@ -13,7 +13,7 @@ public class gitRepository {
 
     public gitRepository(boolean compress) {
         System.out.println(attemptCreatingGitRepository());
-        this.compress = compress;
+        // this.compress = compress;
     }
 
     public String attemptCreatingGitRepository() {
@@ -41,8 +41,8 @@ public class gitRepository {
     }
 
     public String createShah1Hash(String inputData) {
-        if (compress)
-            inputData = compressContents(inputData);
+        // if (compress)
+        //     inputData = compressContents(inputData);
 
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -87,7 +87,15 @@ public class gitRepository {
         }
     }
 
-    public static String compressContents() {
-        
+    public void index(String fileName) {
+        StringBuilder fileIndex = new StringBuilder();
+        if (getFileContents("git/index").length() > 0)
+            fileIndex.append("\n");
+        String fileHash = createShah1Hash(fileName);
+        fileIndex.append(fileHash + " " + fileName);
     }
+
+    // public static String compressContents() {
+        
+    // }
 }
