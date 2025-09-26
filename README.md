@@ -20,10 +20,20 @@ Generate Hash -> createShah1Hash(String inputData) *Taken from GeeksforGeeks*
 4. byte array is converted to signum representation
 5. converted to hex value (precedding 0s added to make it 40 digits long) and returned
 
-Create Blob File & Store in (BLOB(String fileName))
-1. Gets contents from fileName
-2. Generates Hash from Contents
+__GP-2.3__ | Create Blob File & Store -> BLOB(String fileName)
+1. Gets contents from fileName -> getFileContents(String fileName)
+2. Generates Hash from Contents -> createShah1Hash(String inputData)
 3. Writes to File (doesnt return anything)
 4. Tester projectTester.java
     1. starts with fresh repo / does full reset
     2. blobs file and sees if its in the objects folder (prints true / false for success)
+
+*Tester* -> projectTester.java, testBLOB();
+1. Resets repo with resetRepo(false); -> reset repo clears all files and constructs new repo (returns it for future use), false bc not testing compression rn
+2. Generates files with generateTestFiles() -> uses pre-determined global constants for file names and uses the same phrase + random number for the contents so that each trial will have different contents to be hashed
+3. Prints out trial number, results per file in repo initialization and if it recognizes that there is a repo that already exists
+4. Resets multiple times to ensure robustness >:|
+
+*Compression* -> public static void compressContents(String fileName)
+1. global var enabled
+2. getFileContents(String fileName) will make a temp file to compress then get the contents of the compressed version

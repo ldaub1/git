@@ -71,7 +71,7 @@ public class projectTester {
             System.out.println("*Trial " + i + "*");
             for (String fileName : TEST_FILE_NAMES) {
                 testRepo.BLOB(fileName);
-                File fileBLOB = new File("git/objects/" + testRepo.createShah1Hash(gitRepository.getFileContents(fileName)));
+                File fileBLOB = new File("git/objects/" + testRepo.createShah1Hash(testRepo.getFileContents(fileName)));
                 System.out.println("(UNCOMPRESSED) BLOB (" + fileName + ") created in objects: " + fileBLOB.exists());
             }
         }
@@ -82,7 +82,7 @@ public class projectTester {
             System.out.println("*Trial " + i + "*");
             for (String fileName : TEST_FILE_NAMES) {
                 testRepoCompressed.BLOB(fileName);
-                File fileBLOB = new File("git/objects/" + testRepoCompressed.createShah1Hash(gitRepository.getFileContents(fileName)));
+                File fileBLOB = new File("git/objects/" + testRepoCompressed.createShah1Hash(testRepoCompressed.getFileContents(fileName)));
                 System.out.println("(COMPRESSED) BLOB (" + fileName + ") created in objects: " + fileBLOB.exists());
             }
         }

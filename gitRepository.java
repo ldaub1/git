@@ -2,6 +2,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.zip.*;
 
 public class gitRepository {
 
@@ -13,7 +14,7 @@ public class gitRepository {
 
     public gitRepository(boolean compress) {
         System.out.println(attemptCreatingGitRepository());
-        // this.compress = compress;
+        this.compress = compress;
     }
 
     public String attemptCreatingGitRepository() {
@@ -41,9 +42,6 @@ public class gitRepository {
     }
 
     public String createShah1Hash(String inputData) {
-        // if (compress)
-        //     inputData = compressContents(inputData);
-
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] messageDigest = md.digest(inputData.getBytes());
@@ -58,7 +56,11 @@ public class gitRepository {
         }
     }
 
-    public static String getFileContents(String fileName) {
+    public String getFileContents(String fileName) {
+        if (compress) {
+            compressContents(fileName);
+            fileName = "tempCompressed.zip";
+        }
         StringBuilder data = new StringBuilder("");
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -68,6 +70,7 @@ public class gitRepository {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return data.toString();
     }
 
@@ -116,7 +119,30 @@ public class gitRepository {
         return data.substring(lastIndex);
     }
 
-    // public static String compressContents() { SHOULD BE ZIP COMPRESSION
-        
-    // }
+    public static void compressContents(String fileName) { 
+        FileOutputStream fos;
+        try {
+            fos = new FileOutputStream("tempCompressed.zip");
+            ZipOutputStream zipOut = new ZipOutputStream(fos);
+
+            File fileToZip = new File(fileName);
+            FileInputStream fis = new FileInputStream(fileToZip);
+            ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
+            zipOut.putNextEntry(zipEntry);
+
+            byte[] bytes = new byte[1024];
+            int length;
+            while((length = fis.read(bytes)) >= 0) {
+                zipOut.write(bytes, 0, length);
+            }
+
+            zipOut.close();
+            fis.close();
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
