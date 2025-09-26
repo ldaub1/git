@@ -8,7 +8,7 @@ public class projectTester {
     private static File OBJECTS = new File("git/objects");
     private static File INDEX = new File("git/index");
     private static File HEAD = new File("git/HEAD");
-    private static String[] TEST_FILE_NAMES = {"test1.txt", "wow_another_test.txt", "one_more.txt"};
+    private static String[] TEST_FILE_NAMES = {"test1.txt", "wow_another_test.txt", "testFolder/one_more.txt"};
 
     public static void main(String[] args) {
         // testGenerateGitDirectory();
@@ -18,6 +18,8 @@ public class projectTester {
 
     public static void generateTestFiles() {
         for (String fileName : TEST_FILE_NAMES) {
+            File testFolder = new File("testFolder");
+            testFolder.mkdir();
             File testFile = new File(fileName);
             try {
                 testFile.createNewFile();
