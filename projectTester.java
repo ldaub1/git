@@ -107,18 +107,10 @@ public class projectTester {
     }
 
     public static gitRepository resetRepo(boolean compression) {
-        if (INDEX.exists())
-            INDEX.delete();
-        if (OBJECTS.exists())
-            OBJECTS.delete();
         if (gitDIR.exists())
-            gitDIR.delete();
-        if (HEAD.exists())
-            HEAD.delete();
-
+            deleteDirectoryRecursive(OBJECTS);
         gitRepository newRepo = new gitRepository(compression);
         return newRepo;
-
     }
     
     public static void deleteDirectoryRecursive(File file)
