@@ -8,65 +8,102 @@ public class projectTester {
     private static File OBJECTS = new File("git/objects");
     private static File INDEX = new File("git/index");
     private static File HEAD = new File("git/HEAD");
+    private static String[] TEST_FILE_NAMES = {"test1.txt", "wow_another_test.txt", "one_more.txt"};
 
-    public static void main(String[] args, boolean compress) {
-        testGenerateGitDirectory();
-        testBLOB();
+    public static void main(String[] args) {
+        // testGenerateGitDirectory();
+        // testBLOB();
+        testBLOBAndIndex();
+    }
+
+    public static void generateTestFiles() {
+        for (String fileName : TEST_FILE_NAMES) {
+            File testFile = new File(fileName);
+            try {
+                testFile.createNewFile();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+            try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fileName))) {
+                bufferedWriter.write("wow what a great test\n#" + (int) (Math.random() * 10000000) + "._.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void testBLOBAndIndex() {
+        System.out.println("\nTESTING INDEXING OF BLOBS GENERATED FROM FILES");
+        generateTestFiles();
+
+        for (int i = 0; i < 100; i++) {
+            System.out.println("*Trial " + i + "*");
+            gitRepository testRepo = resetRepo(false);
+            for (String fileName : TEST_FILE_NAMES) {
+                testRepo.index(fileName);
+                testRepo.BLOB(fileName);
+                System.out.println("BLOB File Name matches Index: "+ (testRepo.createShah1Hash(testRepo.getFileContents(fileName)) + " " + fileName).equals(testRepo.seeLastIndexEntry()));
+            }
+
+            gitRepository testRepoCompressed = resetRepo(true);
+            for (String fileName : TEST_FILE_NAMES) {
+                testRepoCompressed.index(fileName);
+                testRepoCompressed.BLOB(fileName);
+                System.out.println("BLOB File Name matches Index: "+ (testRepoCompressed.createShah1Hash(testRepoCompressed.getFileContents(fileName)) + " " + fileName).equals(testRepoCompressed.seeLastIndexEntry()));
+            }
+        }
     }
 
     public static void testBLOB() {
-        clearRepo();
-        gitRepository testRepo = new gitRepository(false);
 
-        File testFile = new File("test.txt");
-        try {
-            testFile.createNewFile();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        System.out.println("\nTESTING BLOB GENERATION FROM FILES");
+        gitRepository testRepo = resetRepo(false);
+        generateTestFiles();
+
+        for (int i = 0; i < 100; i++) {
+            System.out.println("*Trial " + i + "*");
+            for (String fileName : TEST_FILE_NAMES) {
+                testRepo.BLOB(fileName);
+                File fileBLOB = new File("git/objects/" + testRepo.createShah1Hash(testRepo.getFileContents(fileName)));
+                System.out.println("(UNCOMPRESSED) BLOB (" + fileName + ") created in objects: " + fileBLOB.exists());
+            }
         }
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("test.txt"))) {
-            bufferedWriter.write("wow what a great test");
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        gitRepository testRepoCompressed = resetRepo(true);
+
+        for (int i = 0; i < 1; i++) {
+            System.out.println("*Trial " + i + "*");
+            for (String fileName : TEST_FILE_NAMES) {
+                testRepoCompressed.BLOB(fileName);
+                File fileBLOB = new File("git/objects/" + testRepoCompressed.createShah1Hash(testRepoCompressed.getFileContents(fileName)));
+                System.out.println("(COMPRESSED) BLOB (" + fileName + ") created in objects: " + fileBLOB.exists());
+            }
         }
-
-        testRepo.BLOB("test.txt");
-        File fileBLOB = new File("git/objects/" + testRepo.createShah1Hash(gitRepository.getFileContents("test.txt")));
-        System.out.println("\nBLOB created in objects (uncompressed): " + fileBLOB.exists());
-
-        clearRepo();
-        gitRepository testRepoCompressed = new gitRepository(true);
-        testRepo.BLOB("test.txt");
-        File fileBLOBCompressed = new File("git/objects/" + testRepoCompressed.createShah1Hash(gitRepository.getFileContents("test.txt")));
-        System.out.println("\nBLOB created in objects (compressed): " + fileBLOBCompressed.exists());
     }
 
     public static void testGenerateGitDirectory() {
 
+        System.out.println("\nTESTING GIT DIRECTORY (AND OTHER ACCOMPANYING FILES) GENERATION");
+
         for (int i = 0; i < 100; i++) {
-            clearRepo();
+            System.out.println("*Trial " + i + "*");
+            gitRepository testRepo = resetRepo(false);
 
-            gitRepository testRepo = new gitRepository(false);
-
-            System.out.println("git Directory Created: " + gitDIR.exists());
-            System.out.println("objects Directory Created Inside git Directory: " + OBJECTS.exists());
-            System.out.println("index File Created Inside git Directory: " + INDEX.exists());
-            System.out.println("head File Created Inside git Directory: " + HEAD.exists());
+            System.out.println("Tester Confirming Git Repository Created: " + gitDIR.exists());
+            System.out.println("Tester Confirming Objects Directory Created Inside git Directory: " + OBJECTS.exists());
+            System.out.println("Tester Confirming Index File Created Inside git Directory: " + INDEX.exists());
+            System.out.println("Tester Confirming Head File Created Inside git Directory: " + HEAD.exists());
 
             System.out.println("\nError Sucessfully Thrown If Exists?");
             gitRepository testRepo2 = new gitRepository(false);
         }
     }
 
-    public static void clearRepo() {
-        if (INDEX.exists())
-            INDEX.delete();
-        if (OBJECTS.exists())
-            OBJECTS.delete();
+    public static gitRepository resetRepo(boolean compression) {
         if (gitDIR.exists())
-            gitDIR.delete();
-        if (HEAD.exists())
-            HEAD.delete();
+            deleteDirectoryRecursive(gitDIR);
+        gitRepository newRepo = new gitRepository(compression);
+        return newRepo;
     }
     
     public static void deleteDirectoryRecursive(File file)

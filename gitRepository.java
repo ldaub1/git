@@ -2,6 +2,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.zip.*;
 
 public class gitRepository {
 
@@ -13,7 +14,7 @@ public class gitRepository {
 
     public gitRepository(boolean compress) {
         System.out.println(attemptCreatingGitRepository());
-        // this.compress = compress;
+        this.compress = compress;
     }
 
     public String attemptCreatingGitRepository() {
@@ -41,9 +42,6 @@ public class gitRepository {
     }
 
     public String createShah1Hash(String inputData) {
-        // if (compress)
-        //     inputData = compressContents(inputData);
-
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] messageDigest = md.digest(inputData.getBytes());
@@ -58,16 +56,24 @@ public class gitRepository {
         }
     }
 
-    public static String getFileContents(String fileName) {
+    public String getFileContents(String fileName) {
+        if (compress) {
+            compressContents(fileName);
+            fileName = "tempCompressed.zip";
+        }
         StringBuilder data = new StringBuilder("");
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             while ((line = br.readLine()) != null) {
-                data.append(line);
+                data.append(line + "\n");
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if (data.length() > 2) {
+            return data.substring(0, data.length() - 1);
+}
         return data.toString();
     }
 
@@ -89,13 +95,55 @@ public class gitRepository {
 
     public void index(String fileName) {
         StringBuilder fileIndex = new StringBuilder();
-        if (getFileContents("git/index").length() > 0)
+        if (INDEX.length() > 0)
             fileIndex.append("\n");
-        String fileHash = createShah1Hash(fileName);
+        String fileContents = getFileContents(fileName);
+        String fileHash = createShah1Hash(fileContents);
         fileIndex.append(fileHash + " " + fileName);
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(INDEX, true))) {
+            bufferedWriter.write(fileIndex.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    // public static String compressContents() {
-        
-    // }
+    public String seeLastIndexEntry() {
+        String lastLine = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(INDEX))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                lastLine = line;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return lastLine;
+    }
+
+    public static void compressContents(String fileName) { 
+        FileOutputStream fos;
+        try {
+            fos = new FileOutputStream("tempCompressed.zip");
+            ZipOutputStream zipOut = new ZipOutputStream(fos);
+
+            File fileToZip = new File(fileName);
+            FileInputStream fis = new FileInputStream(fileToZip);
+            ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
+            zipOut.putNextEntry(zipEntry);
+
+            byte[] bytes = new byte[1024];
+            int length;
+            while((length = fis.read(bytes)) >= 0) {
+                zipOut.write(bytes, 0, length);
+            }
+
+            zipOut.close();
+            fis.close();
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
