@@ -65,12 +65,15 @@ public class gitRepository {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             while ((line = br.readLine()) != null) {
-                data.append(line);
+                data.append(line + "\n");
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        if (data.length() > 2) {
+            return data.substring(0, data.length() - 1);
+}
         return data.toString();
     }
 
@@ -92,11 +95,12 @@ public class gitRepository {
 
     public void index(String fileName) {
         StringBuilder fileIndex = new StringBuilder();
-        if (getFileContents("git/index").length() > 0)
+        if (INDEX.length() > 0)
             fileIndex.append("\n");
-        String fileHash = createShah1Hash(fileName);
+        String fileContents = getFileContents(fileName);
+        String fileHash = createShah1Hash(fileContents);
         fileIndex.append(fileHash + " " + fileName);
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(INDEX))) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(INDEX, true))) {
             bufferedWriter.write(fileIndex.toString());
         } catch (IOException e) {
             e.printStackTrace();
@@ -104,19 +108,16 @@ public class gitRepository {
     }
 
     public String seeLastIndexEntry() {
-        StringBuilder data = new StringBuilder("");
+        String lastLine = "";
         try (BufferedReader br = new BufferedReader(new FileReader(INDEX))) {
             String line;
             while ((line = br.readLine()) != null) {
-                data.append(line);
+                lastLine = line;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        int lastIndex = data.lastIndexOf("\n");
-        if (lastIndex == -1)
-            lastIndex = 0;
-        return data.substring(lastIndex);
+        return lastLine;
     }
 
     public static void compressContents(String fileName) { 

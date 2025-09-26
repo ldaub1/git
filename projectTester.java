@@ -12,8 +12,8 @@ public class projectTester {
 
     public static void main(String[] args) {
         // testGenerateGitDirectory();
-        testBLOB();
-        // testBLOBAndIndex();
+        // testBLOB();
+        testBLOBAndIndex();
     }
 
     public static void generateTestFiles() {
@@ -25,7 +25,7 @@ public class projectTester {
                 System.out.println(e.getMessage());
             }
             try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fileName))) {
-                bufferedWriter.write("wow what a great test" + Math.random());
+                bufferedWriter.write("wow what a great test\n#" + (int) (Math.random() * 10000000) + "._.");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -33,32 +33,25 @@ public class projectTester {
     }
 
     public static void testBLOBAndIndex() {
-
         System.out.println("\nTESTING INDEXING OF BLOBS GENERATED FROM FILES");
-
-        gitRepository testRepo = resetRepo(false);
         generateTestFiles();
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 100; i++) {
             System.out.println("*Trial " + i + "*");
+            gitRepository testRepo = resetRepo(false);
             for (String fileName : TEST_FILE_NAMES) {
                 testRepo.index(fileName);
                 testRepo.BLOB(fileName);
-                System.out.println("BLOB File Name matches Index: "+ (testRepo.createShah1Hash(fileName) + " " + fileName).equals(testRepo.seeLastIndexEntry()));
+                System.out.println("BLOB File Name matches Index: "+ (testRepo.createShah1Hash(testRepo.getFileContents(fileName)) + " " + fileName).equals(testRepo.seeLastIndexEntry()));
+            }
+
+            gitRepository testRepoCompressed = resetRepo(true);
+            for (String fileName : TEST_FILE_NAMES) {
+                testRepoCompressed.index(fileName);
+                testRepoCompressed.BLOB(fileName);
+                System.out.println("BLOB File Name matches Index: "+ (testRepoCompressed.createShah1Hash(testRepoCompressed.getFileContents(fileName)) + " " + fileName).equals(testRepoCompressed.seeLastIndexEntry()));
             }
         }
-
-        gitRepository testRepoCompressed = resetRepo(true);
-
-        // for (int i = 0; i < 1; i++) {
-        //     System.out.println("*Trial " + i + "*");
-        //     for (String fileName : TEST_FILE_NAMES) {
-        //         testRepo.index(fileName);
-        //         testRepo.BLOB(fileName);
-        //         File fileBLOBCompressed = new File("git/objects/" + testRepoCompressed.createShah1Hash(gitRepository.getFileContents(fileName)));
-        //         System.out.println("(COMPRESSED) BLOB created in objects: " + fileBLOBCompressed.exists());
-        //     }
-        // }
     }
 
     public static void testBLOB() {
@@ -67,7 +60,7 @@ public class projectTester {
         gitRepository testRepo = resetRepo(false);
         generateTestFiles();
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 100; i++) {
             System.out.println("*Trial " + i + "*");
             for (String fileName : TEST_FILE_NAMES) {
                 testRepo.BLOB(fileName);
@@ -108,7 +101,7 @@ public class projectTester {
 
     public static gitRepository resetRepo(boolean compression) {
         if (gitDIR.exists())
-            deleteDirectoryRecursive(OBJECTS);
+            deleteDirectoryRecursive(gitDIR);
         gitRepository newRepo = new gitRepository(compression);
         return newRepo;
     }
