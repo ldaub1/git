@@ -11,8 +11,8 @@ public class projectTester {
     private static String[] TEST_FILE_NAMES = {"test1.txt", "wow_another_test.txt", "one_more.txt"};
 
     public static void main(String[] args) {
-        testGenerateGitDirectory();
-        // testBLOB();
+        // testGenerateGitDirectory();
+        testBLOB();
         // testBLOBAndIndex();
     }
 
