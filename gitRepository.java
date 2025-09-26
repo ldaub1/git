@@ -2,7 +2,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.zip.*;
+import java.util.zip.GZIPOutputStream;
 
 public class gitRepository {
 
@@ -41,7 +41,7 @@ public class gitRepository {
         return "Git Repository Created";
     }
 
-    public String createShah1Hash(String inputData) {
+    public String createSha1Hash(String inputData) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] messageDigest = md.digest(inputData.getBytes());
@@ -57,10 +57,6 @@ public class gitRepository {
     }
 
     public String getFileContents(String fileName) {
-        if (compress) {
-            compressContents(fileName);
-            fileName = "tempCompressed.zip";
-        }
         StringBuilder data = new StringBuilder("");
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -71,21 +67,17 @@ public class gitRepository {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (data.length() > 2) {
-            return data.substring(0, data.length() - 1);
-}
+        if (compress) {
+            return compressContents(data.toString());
+        }
+        if (!data.isEmpty())
+            return data.substring(0, data.length() - 1);  
         return data.toString();
     }
 
     public void BLOB(String fileName) {
         String fileContents = getFileContents(fileName);
-        String hashName = createShah1Hash(fileContents);
-        File newBLOB = new File("git/objects/" + hashName);
-        try {
-            newBLOB.createNewFile();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        String hashName = createSha1Hash(fileContents);
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("git/objects/" + hashName))) {
             bufferedWriter.write(fileContents);
         } catch (IOException e) {
@@ -98,7 +90,7 @@ public class gitRepository {
         if (INDEX.length() > 0)
             fileIndex.append("\n");
         String fileContents = getFileContents(fileName);
-        String fileHash = createShah1Hash(fileContents);
+        String fileHash = createSha1Hash(fileContents);
         fileIndex.append(fileHash + " " + fileName);
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(INDEX, true))) {
             bufferedWriter.write(fileIndex.toString());
@@ -120,30 +112,19 @@ public class gitRepository {
         return lastLine;
     }
 
-    public static void compressContents(String fileName) { 
-        FileOutputStream fos;
+    public static String compressContents(String contents) { 
+        if (contents != null && contents.length() != 0) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+        GZIPOutputStream gzip;
         try {
-            fos = new FileOutputStream("tempCompressed.zip");
-            ZipOutputStream zipOut = new ZipOutputStream(fos);
-
-            File fileToZip = new File(fileName);
-            FileInputStream fis = new FileInputStream(fileToZip);
-            ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
-            zipOut.putNextEntry(zipEntry);
-
-            byte[] bytes = new byte[1024];
-            int length;
-            while((length = fis.read(bytes)) >= 0) {
-                zipOut.write(bytes, 0, length);
-            }
-
-            zipOut.close();
-            fis.close();
-            fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            gzip = new GZIPOutputStream(out);
+            gzip.write(contents.getBytes());
+            gzip.close();
+            return out.toString("ISO-8859-1");
         } catch (IOException e) {
             e.printStackTrace();
         }
+        }
+        return contents;
     }
 }

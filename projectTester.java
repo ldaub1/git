@@ -42,14 +42,14 @@ public class projectTester {
             for (String fileName : TEST_FILE_NAMES) {
                 testRepo.index(fileName);
                 testRepo.BLOB(fileName);
-                System.out.println("BLOB File Name matches Index: "+ (testRepo.createShah1Hash(testRepo.getFileContents(fileName)) + " " + fileName).equals(testRepo.seeLastIndexEntry()));
+                System.out.println("BLOB File Name matches Index: "+ (testRepo.createSha1Hash(testRepo.getFileContents(fileName)) + " " + fileName).equals(testRepo.seeLastIndexEntry()));
             }
 
             gitRepository testRepoCompressed = resetRepo(true);
             for (String fileName : TEST_FILE_NAMES) {
                 testRepoCompressed.index(fileName);
                 testRepoCompressed.BLOB(fileName);
-                System.out.println("BLOB File Name matches Index: "+ (testRepoCompressed.createShah1Hash(testRepoCompressed.getFileContents(fileName)) + " " + fileName).equals(testRepoCompressed.seeLastIndexEntry()));
+                System.out.println("BLOB File Name matches Index: "+ (testRepoCompressed.createSha1Hash(testRepoCompressed.getFileContents(fileName)) + " " + fileName).equals(testRepoCompressed.seeLastIndexEntry()));
             }
         }
     }
@@ -64,7 +64,7 @@ public class projectTester {
             System.out.println("*Trial " + i + "*");
             for (String fileName : TEST_FILE_NAMES) {
                 testRepo.BLOB(fileName);
-                File fileBLOB = new File("git/objects/" + testRepo.createShah1Hash(testRepo.getFileContents(fileName)));
+                File fileBLOB = new File("git/objects/" + testRepo.createSha1Hash(testRepo.getFileContents(fileName)));
                 System.out.println("(UNCOMPRESSED) BLOB (" + fileName + ") created in objects: " + fileBLOB.exists());
             }
         }
@@ -75,7 +75,7 @@ public class projectTester {
             System.out.println("*Trial " + i + "*");
             for (String fileName : TEST_FILE_NAMES) {
                 testRepoCompressed.BLOB(fileName);
-                File fileBLOB = new File("git/objects/" + testRepoCompressed.createShah1Hash(testRepoCompressed.getFileContents(fileName)));
+                File fileBLOB = new File("git/objects/" + testRepoCompressed.createSha1Hash(testRepoCompressed.getFileContents(fileName)));
                 System.out.println("(COMPRESSED) BLOB (" + fileName + ") created in objects: " + fileBLOB.exists());
             }
         }
