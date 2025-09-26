@@ -1,10 +1,12 @@
-Initializes Git Repository -> generateGitDirectory() in gitRepository file
-1. Returns message if it all already exists (doesn't continue to the rest of the method)
-2. Attempts to creating whatever is missing
-3. Returns Output (Git Repository Created) ._. (go print it yourself, see tester for sample)
-4. Tester -> projectTester.java
-    1. (removes any files, creates them, tests already made case) 
-    2. ests multiple times to ensure robustness >:|
+__GP 2.1__ | Initialize Git Repository 
+1. Contructor calls generateGitDirectory() in gitRepository file (also defines global var for compression on/off)
+2. Returns message if it all already exists (doesn't continue to the rest of the method)
+3. Attempts to creating whatever is missing
+4. Returns Output (Git Repository Created) (main branch prints, if called outside of that for some reason???? needs to be printed)
+5. *Tester* -> projectTester.java, testGenerateGitDirectory();
+    1. Resets repo with resetRepo(false); -> reset repo clears all files and constructs new repo (returns it for future use), false bc not testing compression rn
+    2. Prints out trial number, results per file in repo initialization and if it recognizes that there is a repo that already exists
+    3. Resets multiple times to ensure robustness >:|
 
 Reads in Data from file -> getFileContents(String fileName)
 1. Takes file name as input returns string w/ contentes

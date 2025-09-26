@@ -93,9 +93,30 @@ public class gitRepository {
             fileIndex.append("\n");
         String fileHash = createShah1Hash(fileName);
         fileIndex.append(fileHash + " " + fileName);
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(INDEX))) {
+            bufferedWriter.write(fileIndex.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    // public static String compressContents() {
+    public String seeLastIndexEntry() {
+        StringBuilder data = new StringBuilder("");
+        try (BufferedReader br = new BufferedReader(new FileReader(INDEX))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                data.append(line);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        int lastIndex = data.lastIndexOf("\n");
+        if (lastIndex == -1)
+            lastIndex = 0;
+        return data.substring(lastIndex);
+    }
+
+    // public static String compressContents() { SHOULD BE ZIP COMPRESSION
         
     // }
 }
