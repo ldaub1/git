@@ -89,9 +89,18 @@ public class gitRepository {
         StringBuilder fileIndex = new StringBuilder();
         if (INDEX.length() > 0)
             fileIndex.append("\n");
+        //
+        String fileType;
+        File file = new File(fileName);
+        if (file.isDirectory()) {
+            fileType = "tree";
+        } else {
+            fileType = "blob";
+        }
+        //
         String fileContents = getFileContents(fileName);
         String fileHash = createSha1Hash(fileContents);
-        fileIndex.append(fileHash + " " + fileName);
+        fileIndex.append(fileType + " " + fileHash + " " + fileName);
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(INDEX, true))) {
             bufferedWriter.write(fileIndex.toString());
         } catch (IOException e) {
@@ -127,4 +136,12 @@ public class gitRepository {
         }
         return contents;
     }
+
+    //
+    public void addTree(String directoryPath) {
+        File tree = new File(directoryPath);
+        // figure out what's a directory based on (/)
+        // base case --> files only in folder
+    }
+    //
 }
