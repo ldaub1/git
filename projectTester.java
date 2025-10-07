@@ -1,5 +1,6 @@
 import java.io.*;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.nio.charset.StandardCharsets;
 
 public class projectTester {
@@ -13,7 +14,8 @@ public class projectTester {
     public static void main(String[] args) {
         // testGenerateGitDirectory();
         // testBLOB();
-        testBLOBAndIndex();
+        // testBLOBAndIndex();
+        testTreeGeneration();
     }
 
     public static void generateTestFiles() {
@@ -117,4 +119,18 @@ public class projectTester {
             subfile.delete();
         }
     }
+
+    public static void testTreeGeneration() {
+        System.out.println("testing tree generation");
+        resetRepo(false);
+        generateTestFiles(); 
+        gitRepository repo = new gitRepository(false);
+        for (String fileName : TEST_FILE_NAMES) {
+            repo.index(fileName);
+            repo.BLOB(fileName);
+        }
+        ArrayList<String> workingList = repo.addTreeRecursive();
+        System.out.println("Final working list (should be root tree): " + workingList);
+    }   
+
 }
