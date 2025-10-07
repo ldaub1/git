@@ -205,7 +205,7 @@ public class gitRepository {
         return idx == -1 ? "" : dir.substring(0, idx);
     }
 
-    public void addTreeRecursive() {
+    public ArrayList<String> addTreeRecursive() {
         ArrayList<String> workingList = buildWorkingList();
         while (workingList.size() > 1) {
             int maxDepth = findDeepest(workingList);
@@ -229,9 +229,15 @@ public class gitRepository {
             }
             workingList = newWorkingList;
         }
-        if (!workingList.isEmpty()) {
+        if (workingList.size() > 1) {
+            String treeHash = writeTreeObj(workingList);
+            workingList.clear();
+            workingList.add("tree " + treeHash);
+            System.out.println("Root tree entry: tree " + treeHash);
+        } else if (!workingList.isEmpty()) {
             System.out.println("Root tree entry: " + workingList.get(0));
         }
+        return workingList;
     }
 
     public String writeTreeObj(ArrayList<String> entries) {
