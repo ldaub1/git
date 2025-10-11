@@ -1,10 +1,12 @@
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
 
 public class gitRepository {
 
@@ -12,6 +14,7 @@ public class gitRepository {
     private File OBJECTS = new File("git/objects");
     private File INDEX = new File("git/index");
     private File HEAD = new File("git/HEAD");
+    private String rootHash;
     private boolean compress;
 
     public gitRepository(boolean compress) {
@@ -234,12 +237,29 @@ public class gitRepository {
             workingList = newWorkingList;
         }
         if (workingList.size() > 1) {
+            // this code will never execute...
             String treeHash = writeTreeObj(workingList);
             workingList.clear();
             workingList.add("tree " + treeHash);
             System.out.println("Root tree entry: tree " + treeHash);
+
+            rootHash = treeHash;
+
         } else if (!workingList.isEmpty()) {
-            System.out.println("Root tree entry: " + workingList.get(0));
+            // in other words, if WL.size() == 1?
+            // bug: if one file is committed, then a blob will be here
+
+            if (workingList.get(0).split(" ")[0].equals("blob")) {
+                // i think this is what hannah was trying to do
+                String treeHash = writeTreeObj(workingList);
+                workingList.clear();
+                workingList.add("tree " + treeHash);
+                System.out.println("Root tree entry: tree " + treeHash);
+            } else {
+                System.out.println("Root tree entry: " + workingList.get(0));
+            }
+
+            rootHash = workingList.get(0).split(" ")[1];
         }
         return workingList;
     }
@@ -267,4 +287,47 @@ public class gitRepository {
 
     }
 
+    public void commit() throws IOException {
+        if (rootHash == null) {
+            System.out.println("Error: Tree system has not been generated yet; generating.");
+            addTreeRecursive();
+        }
+
+        Scanner sc = new Scanner(System.in);
+        String treeField = "tree: " + rootHash + "\n";
+
+        System.out.print("\nInput author name: ");
+        String author = "author: " + sc.nextLine() + "\n";
+
+        System.out.print("Input commit message: ");
+        String message = "message: " + sc.nextLine();
+
+        String date = "date: " + java.time.LocalDateTime.now().toString() + "\n";
+        sc.close();
+
+        String parent;
+        // Efficient check to see if first commit or not
+        if (HEAD.length() == 0) {
+            parent = "";
+        } else {
+            parent = "parent: " + Files.readAllLines(HEAD.toPath()).get(0) + "\n";
+        }
+
+        File tempCommitFile = new File("tempCommitFile");
+        BufferedWriter bw = new BufferedWriter(new FileWriter(tempCommitFile, true));
+        bw.write(treeField);
+        bw.write(parent);
+        bw.write(author);
+        bw.write(date);
+        bw.write(message);
+        bw.close();
+
+        BLOB(tempCommitFile.getPath());
+        String hash = createSha1Hash(Files.readString(tempCommitFile.toPath()));
+        tempCommitFile.delete();
+
+        BufferedWriter bw2 = new BufferedWriter(new FileWriter(HEAD.getPath()));
+        bw2.write(hash);
+        bw2.close();
+    }
 }
