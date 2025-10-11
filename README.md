@@ -66,3 +66,8 @@ __GP-3.1.0__ | addTreeRecursive()
 __GP-4.2__ | commit()
 1. Writes a commit file to the objects folder by asking the user for their name and commit message, generating the date, generating the commit hash, and pulls the previous commit hash from the HEAD, if it exists
 2. Writes the current commit hash to the HEAD
+
+__GP-4.3__ | wrapped commit(), add(), and init()
+1. init() makes a repository
+2. add() wraps index and BLOB code and now correctly handles adding a file already in the index
+3. wrapped commit() just delegates to GP-4.2 commit()
