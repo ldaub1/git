@@ -7,11 +7,12 @@ public class GitTester {
         /* Your tester code goes here */
         GitWrapper gw = new GitWrapper();
         gw.init();
-        gw.add("myProgram/hello.txt");
-        gw.add("myProgram/inner/world.txt");
-        gw.commit("John Doe", "Initial commit");
-        gw.checkout("1234567890");
 
+        gw.add("testFolder/another/here.txt");
+        gw.add("testFolder/one_more.txt");
+        gw.add("README.md");
+        gw.add("testFolder/another.txt");
+        
+        gw.commit("miles", "a commit");
     }
-
 }

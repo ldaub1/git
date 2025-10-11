@@ -298,23 +298,16 @@ public class gitRepository {
 
     }
 
-    public String commit() throws IOException {
+    public String commit(String inputAuthor, String message) throws IOException {
         if (rootHash == null) {
-            System.out.println("Error: Tree system has not been generated yet; generating.");
+            System.out.println("Generating tree system.");
             addTreeRecursive();
         }
 
-        Scanner sc = new Scanner(System.in);
         String treeField = "tree: " + rootHash + "\n";
-
-        System.out.print("\nInput author name: ");
-        String author = "author: " + sc.nextLine() + "\n";
-
-        System.out.print("Input commit summary: ");
-        String summary = "summary: " + sc.nextLine();
-
+        String author = "author: " + inputAuthor + "\n";
+        String summary = "summary: " + message;
         String date = "date: " + java.time.LocalDateTime.now().toString() + "\n";
-        sc.close();
 
         String parent;
         // Efficient check to see if first commit or not

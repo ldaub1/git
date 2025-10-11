@@ -3,13 +3,15 @@ import java.io.IOException;
 
 public class GitWrapper {
 
+    gitRepository repo;
+
     /**
      * Initializes a new Git repository.
      * This method creates the necessary directory structure
      * and initial files (index, HEAD) required for a Git repository.
      */
     public void init() {
-        new gitRepository(false);
+        repo = new gitRepository(false);
     };
 
     /**
@@ -33,7 +35,7 @@ public class GitWrapper {
             throw new IOException("add: file is a directory");
         }
 
-        new gitRepository(false).addFile(fileToAdd.getPath());
+        repo.addFile(fileToAdd.getPath());
     };
 
     /**
@@ -58,7 +60,7 @@ public class GitWrapper {
      * @throws IOException 
      */
     public String commit(String author, String message) throws IOException {
-        return new gitRepository(false).commit();
+        return repo.commit(author, message);
     };
 
     /**
@@ -73,6 +75,5 @@ public class GitWrapper {
      */
     public void checkout(String commitHash) {
         // to-do: implement functionality here
-
     };
 }
