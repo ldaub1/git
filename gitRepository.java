@@ -19,6 +19,11 @@ public class gitRepository {
         this.compress = compress;
     }
 
+    public void addFile(String filename) {
+        index(filename);
+        BLOB(filename);
+    }
+
     public String attemptCreatingGitRepository() {
         if (HEAD.exists() && INDEX.exists() && OBJECTS.exists() && gitDIR.exists())
             return "Git Repository Already Exists";
@@ -52,8 +57,7 @@ public class gitRepository {
             while (hashtext.length() < 40)
                 hashtext = "0" + hashtext;
             return hashtext;
-        }
-        catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException();
         }
     }
@@ -73,7 +77,7 @@ public class gitRepository {
             return compressContents(data.toString());
         }
         if (!data.isEmpty())
-            return data.substring(0, data.length() - 1);  
+            return data.substring(0, data.length() - 1);
         return data.toString();
     }
 
@@ -121,18 +125,18 @@ public class gitRepository {
         return lastLine;
     }
 
-    public static String compressContents(String contents) { 
+    public static String compressContents(String contents) {
         if (contents != null && contents.length() != 0) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-        GZIPOutputStream gzip;
-        try {
-            gzip = new GZIPOutputStream(out);
-            gzip.write(contents.getBytes());
-            gzip.close();
-            return out.toString("ISO-8859-1");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            GZIPOutputStream gzip;
+            try {
+                gzip = new GZIPOutputStream(out);
+                gzip.write(contents.getBytes());
+                gzip.close();
+                return out.toString("ISO-8859-1");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return contents;
     }
@@ -249,18 +253,18 @@ public class gitRepository {
             String path = parts[2];
             String name = path.substring(path.lastIndexOf("/") + 1);
             treeContent.append(type).append(" ").append(hash).append(" ").append(name);
-            if (i < entries.size() - 1) treeContent.append("\n");
+            if (i < entries.size() - 1)
+                treeContent.append("\n");
         }
         String treeString = treeContent.toString();
         String treeHash = createSha1Hash(treeString);
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("git/objects/" + treeHash))) {
-        bw.write(treeString); 
+            bw.write(treeString);
         } catch (IOException e) {
-        e.printStackTrace();
+            e.printStackTrace();
         }
-        return treeHash; 
-
+        return treeHash;
 
     }
-    
+
 }

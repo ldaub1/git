@@ -1,0 +1,12 @@
+public class src {
+    public static void main(String[] args) {
+
+        gitRepository test = new gitRepository(false);
+        test.addFile("src.java");
+        test.addFile("testFolder/one_more.txt");
+        test.addFile("testFolder/another/here.txt");
+        test.addFile("testFolder/another.txt");
+
+        test.addTreeRecursive();
+    }
+}
