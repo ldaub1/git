@@ -11,8 +11,8 @@ public class src {
         test.addFile("testFolder/one_more.txt");
         test.addFile("testFolder/another/here.txt");
         test.addFile("testFolder/another.txt");
+
         test.addTreeRecursive();
-        
         System.out.println(new File("git/HEAD").length());
         test.commit();
         

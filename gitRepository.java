@@ -22,9 +22,10 @@ public class gitRepository {
         this.compress = compress;
     }
 
-    public void addFile(String filename) {
-        index(filename);
-        BLOB(filename);
+    public void addFile(String filename) throws IOException {
+        if (index(filename)) {
+            BLOB(filename);
+        }
     }
 
     public String attemptCreatingGitRepository() {
@@ -94,25 +95,35 @@ public class gitRepository {
         }
     }
 
-    public void index(String fileName) {
+    public boolean index(String fileName) throws IOException {
+
+        File file = new File(fileName);
+        String fileContents = getFileContents(fileName);
+        String fileHash = createSha1Hash(fileContents);
+        String indexContents = Files.readString(INDEX.toPath());
+        
+        // if the file has already been included in the index in that state
+        if (indexContents.contains(fileName) && indexContents.contains(fileHash)) {
+            return false;
+        }
+
         StringBuilder fileIndex = new StringBuilder();
         if (INDEX.length() > 0)
             fileIndex.append("\n");
         String fileType;
-        File file = new File(fileName);
         if (file.isDirectory()) {
             fileType = "tree";
         } else {
             fileType = "blob";
         }
-        String fileContents = getFileContents(fileName);
-        String fileHash = createSha1Hash(fileContents);
         fileIndex.append(fileType + " " + fileHash + " " + fileName);
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(INDEX, true))) {
             bufferedWriter.write(fileIndex.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return true;
     }
 
     public String seeLastIndexEntry() {
@@ -287,7 +298,7 @@ public class gitRepository {
 
     }
 
-    public void commit() throws IOException {
+    public String commit() throws IOException {
         if (rootHash == null) {
             System.out.println("Error: Tree system has not been generated yet; generating.");
             addTreeRecursive();
@@ -299,8 +310,8 @@ public class gitRepository {
         System.out.print("\nInput author name: ");
         String author = "author: " + sc.nextLine() + "\n";
 
-        System.out.print("Input commit message: ");
-        String message = "message: " + sc.nextLine();
+        System.out.print("Input commit summary: ");
+        String summary = "summary: " + sc.nextLine();
 
         String date = "date: " + java.time.LocalDateTime.now().toString() + "\n";
         sc.close();
@@ -319,7 +330,7 @@ public class gitRepository {
         bw.write(parent);
         bw.write(author);
         bw.write(date);
-        bw.write(message);
+        bw.write(summary);
         bw.close();
 
         BLOB(tempCommitFile.getPath());
@@ -329,5 +340,7 @@ public class gitRepository {
         BufferedWriter bw2 = new BufferedWriter(new FileWriter(HEAD.getPath()));
         bw2.write(hash);
         bw2.close();
+
+        return hash;
     }
 }
