@@ -74,6 +74,9 @@ public class GitWrapper {
      * @param commitHash The SHA1 hash of the commit to check out.
      */
     public void checkout(String commitHash) {
+        
+        deleteTrackedFiles();
+
         // to-do: implement functionality here
     };
 }

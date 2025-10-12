@@ -17,9 +17,10 @@ public class gitRepository {
     private String rootHash;
     private boolean compress;
 
-    public gitRepository(boolean compress) {
+    public gitRepository(boolean compress) throws IOException {
         System.out.println(attemptCreatingGitRepository());
         this.compress = compress;
+        this.rootHash = getRootHashFromCommitHash(Files.readString(HEAD.toPath()));
     }
 
     public void addFile(String filename) throws IOException {
@@ -101,7 +102,7 @@ public class gitRepository {
         String fileContents = getFileContents(fileName);
         String fileHash = createSha1Hash(fileContents);
         String indexContents = Files.readString(INDEX.toPath());
-        
+
         // if the file has already been included in the index in that state
         if (indexContents.contains(fileName) && indexContents.contains(fileHash)) {
             return false;
@@ -335,5 +336,42 @@ public class gitRepository {
         bw2.close();
 
         return hash;
+    }
+
+    private String getRootHashFromCommitHash(String commitHash) throws IOException {
+        ArrayList<String> lines = new ArrayList<String>(Files
+                .readAllLines(new File("git" + File.separator + "objects" + File.separator + commitHash).toPath()));
+
+        return lines.get(0).split(": ")[1];
+    }
+
+    public void deleteTrackedFilesFromCurrentCommit() throws IOException {
+        deleteRootRecursive(rootHash, "");
+    }
+
+    /**
+     * Going fancy with this message because its an important method.
+     * This method recursively deletes everything from the top.
+     * 
+     * @param treeHash The SHA1 hash of the tree to start deleting from
+     * @param path     The path that the method is currently deleting from
+     */
+    private void deleteRootRecursive(String treeHash, String path) throws IOException {
+        File tree = new File("git" + File.separator + "objects" + File.separator + treeHash);
+        ArrayList<String> lines = new ArrayList<String>(Files.readAllLines(tree.toPath()));
+
+        for (String line : lines) {
+            String[] parsedLine = line.split(" ");
+
+            if (parsedLine[0].equals("blob")) {
+                new File(parsedLine[2]).delete();
+            }
+
+            else {
+                // Must delete everything inside the directory first
+                deleteRootRecursive(parsedLine[1], parsedLine[2] + File.separator);
+                new File(parsedLine[2]).delete();
+            }
+        }
     }
 }

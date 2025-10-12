@@ -83,7 +83,7 @@ public class projectTester {
         }
     }
 
-    public static void testGenerateGitDirectory() {
+    public static void testGenerateGitDirectory() throws IOException {
 
         System.out.println("\nTESTING GIT DIRECTORY (AND OTHER ACCOMPANYING FILES) GENERATION");
 
@@ -101,7 +101,7 @@ public class projectTester {
         }
     }
 
-    public static gitRepository resetRepo(boolean compression) {
+    public static gitRepository resetRepo(boolean compression) throws IOException {
         if (gitDIR.exists())
             deleteDirectoryRecursive(gitDIR);
         gitRepository newRepo = new gitRepository(compression);
