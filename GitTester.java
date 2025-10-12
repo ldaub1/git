@@ -13,7 +13,7 @@ public class GitTester {
         // gw.add("testFolder/another.txt");
         // gw.add("testFolder/shouldbegone.txt");
         
-        gw.commit("miles", "1 commit");
-        // gw.checkout("3f545caefde58eecf403d3b31c8c456b9480b5f6");
+        // gw.commit("miles", "2 commit");
+        gw.checkout("54f8ee50162ef60047399a1965618ae2cf33d723");
     }
 }
