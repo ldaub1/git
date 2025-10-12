@@ -9,8 +9,9 @@ public class GitWrapper {
      * Initializes a new Git repository.
      * This method creates the necessary directory structure
      * and initial files (index, HEAD) required for a Git repository.
+     * @throws IOException 
      */
-    public void init() {
+    public void init() throws IOException {
         repo = new gitRepository(false);
     };
 

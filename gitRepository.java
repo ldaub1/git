@@ -20,7 +20,9 @@ public class gitRepository {
     public gitRepository(boolean compress) throws IOException {
         System.out.println(attemptCreatingGitRepository());
         this.compress = compress;
-        this.rootHash = getRootHashFromCommitHash(Files.readString(HEAD.toPath()));
+        if (!Files.readString(HEAD.toPath()).isEmpty()) {
+            this.rootHash = getRootHashFromCommitHash(Files.readString(HEAD.toPath()));
+        }
     }
 
     public void addFile(String filename) throws IOException {
@@ -268,10 +270,14 @@ public class gitRepository {
                 workingList.add("tree " + treeHash);
                 System.out.println("Root tree entry: tree " + treeHash);
             } else {
+                String treeHash = writeTreeObj(workingList);
+                workingList.clear();
+                workingList.add("tree " + treeHash);
                 System.out.println("Root tree entry: " + workingList.get(0));
             }
 
             rootHash = workingList.get(0).split(" ")[1];
+            System.out.println(rootHash);
         }
         return workingList;
     }
@@ -364,12 +370,12 @@ public class gitRepository {
             String[] parsedLine = line.split(" ");
 
             if (parsedLine[0].equals("blob")) {
-                new File(parsedLine[2]).delete();
+                new File(path + parsedLine[2]).delete();
             }
 
             else {
                 // Must delete everything inside the directory first
-                deleteRootRecursive(parsedLine[1], parsedLine[2] + File.separator);
+                deleteRootRecursive(parsedLine[1], path + parsedLine[2] + File.separator);
                 new File(parsedLine[2]).delete();
             }
         }
