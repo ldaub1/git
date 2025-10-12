@@ -421,11 +421,13 @@ public class gitRepository {
     }
 
     public boolean doesCommitHashExist(String commitHash) throws IOException {
-        if (commitHash.equals(Files.readString(Paths.get("git" + File.separator + "HEAD")))) {
+        String currentCommitHash = Files.readString(Paths.get("git" + File.separator + "HEAD"));
+
+        if (commitHash.equals(currentCommitHash)) {
             return true;
         }
 
-        String parentCommit = getParentCommit(commitHash);
+        String parentCommit = getParentCommit(currentCommitHash);
 
         while (parentCommit != null) {
             if (parentCommit.equals(commitHash)) {

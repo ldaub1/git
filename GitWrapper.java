@@ -80,7 +80,9 @@ public class GitWrapper {
      */
     public void checkout(String commitHash) throws IOException {
 
-        repo.doesCommitHashExist(commitHash);
+        if (!repo.doesCommitHashExist(commitHash)) {
+            throw new IllegalArgumentException("commitHash doesn't exist");
+        }
 
         // deletes tracked files
         repo.deleteTrackedFilesFromCurrentCommit();

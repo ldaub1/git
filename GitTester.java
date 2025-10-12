@@ -8,12 +8,12 @@ public class GitTester {
         GitWrapper gw = new GitWrapper();
         gw.init();
 
-        gw.add("testFolder/another/here.txt");
-        gw.add("testFolder/one_more.txt");
-        gw.add("testFolder/another.txt");
-        gw.add("testFolder/shouldbegone.txt");
+        // gw.add("testFolder/another/here.txt");
+        // gw.add("testFolder/one_more.txt");
+        // gw.add("testFolder/another.txt");
+        // gw.add("testFolder/shouldbegone.txt");
         
-        gw.commit("joseph", "b commit");
-        // gw.checkout("1");
+        // gw.commit("joseph", "b commit");
+        gw.checkout("3f545caefde58eecf403d3b31c8c456b9480b5f6");
     }
 }
