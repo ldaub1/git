@@ -1,10 +1,15 @@
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Scanner;
 
 public class gitRepository {
 
@@ -12,11 +17,21 @@ public class gitRepository {
     private File OBJECTS = new File("git/objects");
     private File INDEX = new File("git/index");
     private File HEAD = new File("git/HEAD");
+    private String rootHash;
     private boolean compress;
 
-    public gitRepository(boolean compress) {
+    public gitRepository(boolean compress) throws IOException {
         System.out.println(attemptCreatingGitRepository());
         this.compress = compress;
+        if (!Files.readString(HEAD.toPath()).isEmpty()) {
+            this.rootHash = getRootHashFromCommitHash(Files.readString(HEAD.toPath()));
+        }
+    }
+
+    public void addFile(String filename) throws IOException {
+        if (index(filename)) {
+            BLOB(filename);
+        }
     }
 
     public String attemptCreatingGitRepository() {
@@ -52,8 +67,7 @@ public class gitRepository {
             while (hashtext.length() < 40)
                 hashtext = "0" + hashtext;
             return hashtext;
-        }
-        catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException();
         }
     }
@@ -73,7 +87,7 @@ public class gitRepository {
             return compressContents(data.toString());
         }
         if (!data.isEmpty())
-            return data.substring(0, data.length() - 1);  
+            return data.substring(0, data.length() - 1);
         return data.toString();
     }
 
@@ -87,25 +101,35 @@ public class gitRepository {
         }
     }
 
-    public void index(String fileName) {
+    public boolean index(String fileName) throws IOException {
+
+        File file = new File(fileName);
+        String fileContents = getFileContents(fileName);
+        String fileHash = createSha1Hash(fileContents);
+        String indexContents = Files.readString(INDEX.toPath());
+
+        // if the file has already been included in the index in that state
+        if (indexContents.contains(fileName) && indexContents.contains(fileHash)) {
+            return false;
+        }
+
         StringBuilder fileIndex = new StringBuilder();
         if (INDEX.length() > 0)
             fileIndex.append("\n");
         String fileType;
-        File file = new File(fileName);
         if (file.isDirectory()) {
             fileType = "tree";
         } else {
             fileType = "blob";
         }
-        String fileContents = getFileContents(fileName);
-        String fileHash = createSha1Hash(fileContents);
         fileIndex.append(fileType + " " + fileHash + " " + fileName);
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(INDEX, true))) {
             bufferedWriter.write(fileIndex.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return true;
     }
 
     public String seeLastIndexEntry() {
@@ -121,18 +145,18 @@ public class gitRepository {
         return lastLine;
     }
 
-    public static String compressContents(String contents) { 
+    public static String compressContents(String contents) {
         if (contents != null && contents.length() != 0) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-        GZIPOutputStream gzip;
-        try {
-            gzip = new GZIPOutputStream(out);
-            gzip.write(contents.getBytes());
-            gzip.close();
-            return out.toString("ISO-8859-1");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            GZIPOutputStream gzip;
+            try {
+                gzip = new GZIPOutputStream(out);
+                gzip.write(contents.getBytes());
+                gzip.close();
+                return out.toString("ISO-8859-1");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return contents;
     }
@@ -229,13 +253,54 @@ public class gitRepository {
             }
             workingList = newWorkingList;
         }
+
+        // to fix the edge case of the nested blob
+        if (workingList.size() == 1 && workingList.get(0).contains("blob ")) {
+            String entry = workingList.get(0);
+
+            // thank u for the godsend getDepth method whoever wrote it
+            while (getDepth(entry) > 1) {
+
+                String dir = getDirName(entry);
+                ArrayList<String> temp = new ArrayList<>();
+                temp.add(entry);
+                String treeHash = writeTreeObj(temp);
+                entry = "tree " + treeHash + " " + dir;
+
+            }
+
+            workingList.clear();
+            workingList.add(entry);
+        }
+
         if (workingList.size() > 1) {
+            // this code will never execute...
             String treeHash = writeTreeObj(workingList);
             workingList.clear();
             workingList.add("tree " + treeHash);
             System.out.println("Root tree entry: tree " + treeHash);
+
+            rootHash = treeHash;
+
         } else if (!workingList.isEmpty()) {
-            System.out.println("Root tree entry: " + workingList.get(0));
+            // in other words, if WL.size() == 1?
+            // bug: if one file is committed, then a blob will be here
+
+            if (workingList.get(0).split(" ")[0].equals("blob")) {
+                // i think this is what hannah was trying to do
+                String treeHash = writeTreeObj(workingList);
+                workingList.clear();
+                workingList.add("tree " + treeHash);
+                System.out.println("Root tree entry: tree " + treeHash);
+            } else {
+                String treeHash = writeTreeObj(workingList);
+                workingList.clear();
+                workingList.add("tree " + treeHash);
+                System.out.println("Root tree entry: " + workingList.get(0));
+            }
+
+            rootHash = workingList.get(0).split(" ")[1];
+            System.out.println(rootHash);
         }
         return workingList;
     }
@@ -249,18 +314,168 @@ public class gitRepository {
             String path = parts[2];
             String name = path.substring(path.lastIndexOf("/") + 1);
             treeContent.append(type).append(" ").append(hash).append(" ").append(name);
-            if (i < entries.size() - 1) treeContent.append("\n");
+            if (i < entries.size() - 1)
+                treeContent.append("\n");
         }
         String treeString = treeContent.toString();
         String treeHash = createSha1Hash(treeString);
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("git/objects/" + treeHash))) {
-        bw.write(treeString); 
+            bw.write(treeString);
         } catch (IOException e) {
-        e.printStackTrace();
+            e.printStackTrace();
         }
-        return treeHash; 
-
+        return treeHash;
 
     }
-    
+
+    public String commit(String inputAuthor, String message) throws IOException {
+        addTreeRecursive();
+
+        String treeField = "tree: " + rootHash + "\n";
+        String author = "author: " + inputAuthor + "\n";
+        String summary = "summary: " + message;
+        String date = "date: " + java.time.LocalDateTime.now().toString() + "\n";
+
+        String parent;
+        // Efficient check to see if first commit or not
+        if (HEAD.length() == 0) {
+            parent = "";
+        } else {
+            parent = "parent: " + Files.readAllLines(HEAD.toPath()).get(0) + "\n";
+        }
+
+        File tempCommitFile = new File("tempCommitFile");
+        BufferedWriter bw = new BufferedWriter(new FileWriter(tempCommitFile, true));
+        bw.write(treeField);
+        bw.write(parent);
+        bw.write(author);
+        bw.write(date);
+        bw.write(summary);
+        bw.close();
+
+        BLOB(tempCommitFile.getPath());
+        String hash = createSha1Hash(Files.readString(tempCommitFile.toPath()));
+        tempCommitFile.delete();
+
+        BufferedWriter bw2 = new BufferedWriter(new FileWriter(HEAD.getPath()));
+        bw2.write(hash);
+        bw2.close();
+
+        return hash;
+    }
+
+    private String getRootHashFromCommitHash(String commitHash) throws IOException {
+        ArrayList<String> lines = new ArrayList<String>(Files
+                .readAllLines(new File("git" + File.separator + "objects" + File.separator + commitHash).toPath()));
+
+        return lines.get(0).split(": ")[1];
+    }
+
+    public void deleteTrackedFilesFromCurrentCommit() throws IOException {
+        deleteRootRecursive(rootHash, "");
+    }
+
+    /**
+     * Going fancy with this message because its an important method.
+     * This method recursively deletes everything from the top.
+     * 
+     * @param treeHash The SHA1 hash of the tree to start deleting from
+     * @param path     The path that the method is currently deleting from
+     */
+    private void deleteRootRecursive(String treeHash, String path) throws IOException {
+        File tree = new File("git" + File.separator + "objects" + File.separator + treeHash);
+        ArrayList<String> lines = new ArrayList<String>(Files.readAllLines(tree.toPath()));
+
+        for (String line : lines) {
+            String[] parsedLine = line.split(" ");
+
+            if (parsedLine[0].equals("blob")) {
+                new File(path + parsedLine[2]).delete();
+            }
+
+            else {
+                // Must delete everything inside the directory first
+                // totally okay if not everything is deleted
+                deleteRootRecursive(parsedLine[1], path + parsedLine[2] + File.separator);
+                new File(path + parsedLine[2]).delete();
+            }
+        }
+    }
+
+    public void regenerateTrackedFilesFromCommit(String commitHash) throws IOException {
+        regenRootRecursive(getRootHashFromCommitHash(commitHash), "");
+    }
+
+    /**
+     * Going fancy with this message because its an important method.
+     * It's basically the inverse of deleting
+     * This method recursively deletes everything from the top.
+     * 
+     * @param treeHash The SHA1 hash of the tree to start deleting from
+     * @param path     The path that the method is currently deleting from
+     */
+    private void regenRootRecursive(String treeHash, String path) throws IOException {
+        File tree = new File("git" + File.separator + "objects" + File.separator + treeHash);
+        ArrayList<String> lines = new ArrayList<String>(Files.readAllLines(tree.toPath()));
+
+        for (String line : lines) {
+            String[] parsedLine = line.split(" ");
+
+            if (parsedLine[0].equals("blob")) {
+                File output = new File(path + parsedLine[2]);
+                String hashedPathToContents = "git" + File.separator + "objects" + File.separator + parsedLine[1];
+                output.createNewFile();
+
+                Files.copy(Paths.get(hashedPathToContents), new FileOutputStream(output));
+            }
+
+            else {
+                // Must delete everything inside the directory first
+                // totally okay if not everything is deleted
+                new File(path + parsedLine[2]).mkdir();
+                regenRootRecursive(parsedLine[1], path + parsedLine[2] + File.separator);
+            }
+        }
+    }
+
+    public boolean doesCommitHashExist(String commitHash) throws IOException {
+        String currentCommitHash = Files.readString(Paths.get("git" + File.separator + "HEAD"));
+
+        if (commitHash.equals(currentCommitHash)) {
+            return true;
+        }
+
+        String parentCommit = getParentCommit(currentCommitHash);
+
+        while (parentCommit != null) {
+            if (parentCommit.equals(commitHash)) {
+                return true;
+            }
+            parentCommit = getParentCommit(parentCommit);
+        }
+
+        /*
+         * At this point, we can check to see if its in the future?
+         */
+
+        ArrayList<File> objectsList = new ArrayList<File>(Arrays.asList(OBJECTS.listFiles()));
+        for (File file : objectsList) {
+            if (file.getName().equals(commitHash)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // returns null if no parent commit exists
+    private String getParentCommit(String commitHash) throws IOException {
+        File commit = new File("git" + File.separator + "objects" + File.separator + commitHash);
+        ArrayList<String> lines = new ArrayList<String>(Files.readAllLines(commit.toPath()));
+        if (lines.get(1).contains("parent")) {
+            return lines.get(1).split(": ")[1];
+        } else {
+            return null;
+        }
+    }
 }

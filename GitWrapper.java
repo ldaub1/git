@@ -1,0 +1,100 @@
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+public class GitWrapper {
+
+    private gitRepository repo;
+
+    /**
+     * Initializes a new Git repository.
+     * This method creates the necessary directory structure
+     * and initial files (index, HEAD) required for a Git repository.
+     * 
+     * @throws IOException
+     */
+    public void init() throws IOException {
+        repo = new gitRepository(false);
+    };
+
+    /**
+     * Stages a file for the next commit.
+     * This method adds a file to the index file.
+     * If the file does not exist, it throws an IOException.
+     * If the file is a directory, it throws an IOException.
+     * If the file is already in the index, it does nothing.
+     * If the file is successfully staged, it creates a blob for the file.
+     * 
+     * @param filePath The path to the file to be staged.
+     * @throws IOException
+     */
+    public void add(String filePath) throws IOException {
+        File fileToAdd = new File(filePath);
+
+        if (!fileToAdd.exists()) {
+            throw new IOException("add: file doesn't exist");
+        }
+
+        if (fileToAdd.isDirectory()) {
+            throw new IOException("add: file is a directory");
+        }
+
+        repo.addFile(fileToAdd.getPath());
+    };
+
+    /**
+     * Creates a commit with the given author and message.
+     * It should capture the current state of the repository by building trees based
+     * on the index file,
+     * writing the tree to the objects directory,
+     * writing the commit to the objects directory,
+     * updating the HEAD file,
+     * and returning the commit hash.
+     * 
+     * The commit should be formatted as follows:
+     * tree: <tree_sha>
+     * parent: <parent_sha>
+     * author: <author>
+     * date: <date>
+     * summary: <summary>
+     *
+     * @param author  The name of the author making the commit.
+     * @param message The commit message describing the changes.
+     * @return The SHA1 hash of the new commit.
+     * @throws IOException
+     */
+    public String commit(String author, String message) throws IOException {
+        return repo.commit(author, message);
+    };
+
+    /**
+     * EXTRA CREDIT:
+     * Checks out a specific commit given its hash.
+     * This method should read the HEAD file to determine the "checked out" commit.
+     * Then it should update the working directory to match the
+     * state of the repository at that commit by tracing through the root tree and
+     * all its children.
+     *
+     * @param commitHash The SHA1 hash of the commit to check out.
+     * @throws IOException
+     */
+    public void checkout(String commitHash) throws IOException {
+
+        if (!repo.doesCommitHashExist(commitHash)) {
+            throw new IllegalArgumentException("commitHash doesn't exist");
+        }
+
+        // deletes tracked files
+        repo.deleteTrackedFilesFromCurrentCommit();
+
+        // generates old files
+        repo.regenerateTrackedFilesFromCommit(commitHash);
+
+        // rewrites head
+        File head = new File("git/HEAD");
+        head.delete();
+        head.createNewFile();
+        Files.write(head.toPath(), commitHash.getBytes());
+
+    };
+}
