@@ -9,7 +9,7 @@ public class projectTester {
     private static File HEAD = new File("git/HEAD");
     private static String[] TEST_FILE_NAMES = {"test1.txt", "wow_another_test.txt", "testFolder/one_more.txt"};
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // testGenerateGitDirectory();
         // testBLOB();
         // testBLOBAndIndex();
@@ -34,7 +34,7 @@ public class projectTester {
         }
     }
 
-    public static void testBLOBAndIndex() {
+    public static void testBLOBAndIndex() throws IOException {
         System.out.println("\nTESTING INDEXING OF BLOBS GENERATED FROM FILES");
         generateTestFiles();
 
@@ -56,7 +56,7 @@ public class projectTester {
         }
     }
 
-    public static void testBLOB() {
+    public static void testBLOB() throws IOException {
 
         System.out.println("\nTESTING BLOB GENERATION FROM FILES");
         gitRepository testRepo = resetRepo(false);
@@ -83,7 +83,7 @@ public class projectTester {
         }
     }
 
-    public static void testGenerateGitDirectory() {
+    public static void testGenerateGitDirectory() throws IOException {
 
         System.out.println("\nTESTING GIT DIRECTORY (AND OTHER ACCOMPANYING FILES) GENERATION");
 
@@ -101,7 +101,7 @@ public class projectTester {
         }
     }
 
-    public static gitRepository resetRepo(boolean compression) {
+    public static gitRepository resetRepo(boolean compression) throws IOException {
         if (gitDIR.exists())
             deleteDirectoryRecursive(gitDIR);
         gitRepository newRepo = new gitRepository(compression);
@@ -118,7 +118,7 @@ public class projectTester {
         }
     }
 
-    public static void testTreeGeneration() {
+    public static void testTreeGeneration() throws IOException {
         System.out.println("testing tree generation");
         resetRepo(false);
         generateTestFiles(); 
