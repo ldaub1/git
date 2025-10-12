@@ -71,3 +71,11 @@ __GP-4.3__ | wrapped commit(), add(), and init()
 1. init() makes a repository
 2. add() wraps index and BLOB code and now correctly handles adding a file already in the index
 3. wrapped commit() just delegates to GP-4.2 commit()
+
+__GP-4.4__ | extra credit -- checkout()
+1. getRootHashFromCommitHash() retrieves the root tree hash from a commitHash
+2. deleteTrackedFilesFromCurrentCommit() wraps deleteRootRecursive() which deletes all files tracked from the root
+3. regenerateTrackedFilesFromCommit() wraps regenRootRecursive() which regenerates all files tracked from the root
+4. doesCommitHashExist() checks to see if a commitHash exists
+5. getParentCommit() grabs the parent commit; null if none exists
+-> Fixed an edge case where if a singular nested blob was being committed, the enclosing folders wouldn't be committed
