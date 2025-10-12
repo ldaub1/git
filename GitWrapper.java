@@ -3,7 +3,7 @@ import java.io.IOException;
 
 public class GitWrapper {
 
-    gitRepository repo;
+    private gitRepository repo;
 
     /**
      * Initializes a new Git repository.
@@ -72,10 +72,11 @@ public class GitWrapper {
      * all its children.
      *
      * @param commitHash The SHA1 hash of the commit to check out.
+     * @throws IOException 
      */
-    public void checkout(String commitHash) {
+    public void checkout(String commitHash) throws IOException {
         
-        deleteTrackedFiles();
+        repo.deleteTrackedFilesFromCurrentCommit();
 
         // to-do: implement functionality here
     };

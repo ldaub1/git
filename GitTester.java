@@ -10,9 +10,9 @@ public class GitTester {
 
         gw.add("testFolder/another/here.txt");
         gw.add("testFolder/one_more.txt");
-        gw.add("README.md");
         gw.add("testFolder/another.txt");
         
         gw.commit("miles", "a commit");
+        gw.checkout("1");
     }
 }
