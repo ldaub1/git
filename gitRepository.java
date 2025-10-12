@@ -432,7 +432,7 @@ public class gitRepository {
                 // Must delete everything inside the directory first
                 // totally okay if not everything is deleted
                 new File(path + parsedLine[2]).mkdir();
-                deleteRootRecursive(parsedLine[1], path + parsedLine[2] + File.separator);
+                regenRootRecursive(parsedLine[1], path + parsedLine[2] + File.separator);
             }
         }
     }
