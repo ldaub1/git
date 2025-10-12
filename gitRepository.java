@@ -252,6 +252,26 @@ public class gitRepository {
             }
             workingList = newWorkingList;
         }
+
+        // to fix the edge case of the nested blob
+        if (workingList.size() == 1 && workingList.get(0).contains("blob ")) {
+            String entry = workingList.get(0);
+
+            // thank u for the godsend getDepth method whoever wrote it
+            while (getDepth(entry) > 1) {
+
+                String dir = getDirName(entry);
+                ArrayList<String> temp = new ArrayList<>();
+                temp.add(entry);
+                String treeHash = writeTreeObj(temp);
+                entry = "tree " + treeHash + " " + dir;
+
+            }
+
+            workingList.clear();
+            workingList.add(entry);
+        }
+
         if (workingList.size() > 1) {
             // this code will never execute...
             String treeHash = writeTreeObj(workingList);
@@ -308,10 +328,7 @@ public class gitRepository {
     }
 
     public String commit(String inputAuthor, String message) throws IOException {
-        if (rootHash == null) {
-            System.out.println("Generating tree system.");
-            addTreeRecursive();
-        }
+        addTreeRecursive();
 
         String treeField = "tree: " + rootHash + "\n";
         String author = "author: " + inputAuthor + "\n";
