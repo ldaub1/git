@@ -7,6 +7,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -451,6 +452,17 @@ public class gitRepository {
                 return true;
             }
             parentCommit = getParentCommit(parentCommit);
+        }
+
+        /*
+         * At this point, we can check to see if its in the future?
+         */
+
+        ArrayList<File> objectsList = new ArrayList<File>(Arrays.asList(OBJECTS.listFiles()));
+        for (File file : objectsList) {
+            if (file.getName().equals(commitHash)) {
+                return true;
+            }
         }
 
         return false;

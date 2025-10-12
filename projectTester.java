@@ -56,7 +56,7 @@ public class projectTester {
         }
     }
 
-    public static void testBLOB() {
+    public static void testBLOB() throws IOException {
 
         System.out.println("\nTESTING BLOB GENERATION FROM FILES");
         gitRepository testRepo = resetRepo(false);
