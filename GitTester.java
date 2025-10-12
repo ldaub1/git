@@ -11,8 +11,9 @@ public class GitTester {
         gw.add("testFolder/another/here.txt");
         gw.add("testFolder/one_more.txt");
         gw.add("testFolder/another.txt");
+        gw.add("testFolder/shouldbegone.txt");
         
-        gw.commit("miles", "a commit");
-        gw.checkout("1");
+        gw.commit("joseph", "b commit");
+        // gw.checkout("1");
     }
 }

@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class GitWrapper {
 
@@ -9,7 +10,8 @@ public class GitWrapper {
      * Initializes a new Git repository.
      * This method creates the necessary directory structure
      * and initial files (index, HEAD) required for a Git repository.
-     * @throws IOException 
+     * 
+     * @throws IOException
      */
     public void init() throws IOException {
         repo = new gitRepository(false);
@@ -22,8 +24,9 @@ public class GitWrapper {
      * If the file is a directory, it throws an IOException.
      * If the file is already in the index, it does nothing.
      * If the file is successfully staged, it creates a blob for the file.
+     * 
      * @param filePath The path to the file to be staged.
-     * @throws IOException 
+     * @throws IOException
      */
     public void add(String filePath) throws IOException {
         File fileToAdd = new File(filePath);
@@ -31,7 +34,7 @@ public class GitWrapper {
         if (!fileToAdd.exists()) {
             throw new IOException("add: file doesn't exist");
         }
-        
+
         if (fileToAdd.isDirectory()) {
             throw new IOException("add: file is a directory");
         }
@@ -58,7 +61,7 @@ public class GitWrapper {
      * @param author  The name of the author making the commit.
      * @param message The commit message describing the changes.
      * @return The SHA1 hash of the new commit.
-     * @throws IOException 
+     * @throws IOException
      */
     public String commit(String author, String message) throws IOException {
         return repo.commit(author, message);
@@ -73,12 +76,23 @@ public class GitWrapper {
      * all its children.
      *
      * @param commitHash The SHA1 hash of the commit to check out.
-     * @throws IOException 
+     * @throws IOException
      */
     public void checkout(String commitHash) throws IOException {
-        
+
+        repo.doesCommitHashExist(commitHash);
+
+        // deletes tracked files
         repo.deleteTrackedFilesFromCurrentCommit();
 
-        // to-do: implement functionality here
+        // generates old files
+        repo.regenerateTrackedFilesFromCommit(commitHash);
+
+        // rewrites head
+        File head = new File("git/HEAD");
+        head.delete();
+        head.createNewFile();
+        Files.write(head.toPath(), commitHash.getBytes());
+
     };
 }

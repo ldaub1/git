@@ -1,6 +1,8 @@
 import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPOutputStream;
@@ -375,9 +377,74 @@ public class gitRepository {
 
             else {
                 // Must delete everything inside the directory first
+                // totally okay if not everything is deleted
                 deleteRootRecursive(parsedLine[1], path + parsedLine[2] + File.separator);
-                new File(parsedLine[2]).delete();
+                new File(path + parsedLine[2]).delete();
             }
+        }
+    }
+
+    public void regenerateTrackedFilesFromCommit(String commitHash) throws IOException {
+        regenRootRecursive(getRootHashFromCommitHash(commitHash), "");
+    }
+
+    /**
+     * Going fancy with this message because its an important method.
+     * It's basically the inverse of deleting
+     * This method recursively deletes everything from the top.
+     * 
+     * @param treeHash The SHA1 hash of the tree to start deleting from
+     * @param path     The path that the method is currently deleting from
+     */
+    private void regenRootRecursive(String treeHash, String path) throws IOException {
+        File tree = new File("git" + File.separator + "objects" + File.separator + treeHash);
+        ArrayList<String> lines = new ArrayList<String>(Files.readAllLines(tree.toPath()));
+
+        for (String line : lines) {
+            String[] parsedLine = line.split(" ");
+
+            if (parsedLine[0].equals("blob")) {
+                File output = new File(path + parsedLine[2]);
+                String hashedPathToContents = "git" + File.separator + "objects" + File.separator + parsedLine[1];
+                output.createNewFile();
+
+                Files.copy(Paths.get(hashedPathToContents), new FileOutputStream(output));
+            }
+
+            else {
+                // Must delete everything inside the directory first
+                // totally okay if not everything is deleted
+                new File(path + parsedLine[2]).mkdir();
+                deleteRootRecursive(parsedLine[1], path + parsedLine[2] + File.separator);
+            }
+        }
+    }
+
+    public boolean doesCommitHashExist(String commitHash) throws IOException {
+        if (commitHash.equals(Files.readString(Paths.get("git" + File.separator + "HEAD")))) {
+            return true;
+        }
+
+        String parentCommit = getParentCommit(commitHash);
+
+        while (parentCommit != null) {
+            if (parentCommit.equals(commitHash)) {
+                return true;
+            }
+            parentCommit = getParentCommit(parentCommit);
+        }
+
+        return false;
+    }
+
+    // returns null if no parent commit exists
+    private String getParentCommit(String commitHash) throws IOException {
+        File commit = new File("git" + File.separator + "objects" + File.separator + commitHash);
+        ArrayList<String> lines = new ArrayList<String>(Files.readAllLines(commit.toPath()));
+        if (lines.get(1).contains("parent")) {
+            return lines.get(1).split(": ")[1];
+        } else {
+            return null;
         }
     }
 }
